@@ -76,3 +76,51 @@ PimaIndiansDiabetes_model_nb_e1071 <- # nolint
                       pedigree + age,
                     data = PimaIndiansDiabetes_train)
 
+PimaIndiansDiabetes_model_nb_caret <- # nolint
+  caret::train(diabetes ~ ., data =
+                 PimaIndiansDiabetes_train[, c("pregnant", "glucose", "pressure",
+                                             "triceps", "insulin", "mass",
+                                             "pedigree",
+                                             "age",
+                                             "diabetes")],
+               method = "naive_bayes")
+
+predictions_nb_e1071 <-
+  predict(PimaIndiansDiabetes_model_nb_e1071,
+          PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                       "triceps", "insulin", "mass",
+                                       "pedigree",
+                                       "age")])
+
+predictions_nb_caret <-
+  predict(PimaIndiansDiabetes_model_nb_caret,
+          PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                     "triceps", "insulin", "mass",
+                                     "pedigree",
+                                     "age")])
+
+print(predictions_nb_e1071)
+caret::confusionMatrix(predictions_nb_e1071,
+                       PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                                  "triceps", "insulin", "mass",
+                                                  "pedigree",
+                                                  "age", "diabetes")]$diabetes)
+
+plot(table(predictions_nb_e1071,
+           PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                        "triceps", "insulin", "mass",
+                                        "pedigree",
+                                        "age", "diabetes")]$diabetes))
+
+print(PimaIndiansDiabetes_model_nb_caret)
+caret::confusionMatrix(predictions_nb_e1071,
+                       PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                                    "triceps", "insulin", "mass",
+                                                    "pedigree",
+                                                    "age", "diabetes")]$diabetes)
+plot(table(predictions_nb_caret,
+           PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                        "triceps", "insulin", "mass",
+                                        "pedigree",
+                                        "age", "diabetes")]$diabetes))
+
