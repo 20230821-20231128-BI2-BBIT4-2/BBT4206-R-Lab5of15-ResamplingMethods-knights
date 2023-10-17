@@ -1,0 +1,278 @@
+---
+title: "Business Intelligence Project"
+author: "<Peter David Aringo>"
+date: "<17/10/2023>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
+|                                                   |                                                                                            |
+|---------------------------------------------------|--------------------------------------------------------------------------------------------|
+| **Student ID Numbers and Names of Group Members** |  135230 Peter Aringo                                                                       |
+|                                                   |  135356 Ann Kigera                                                                         |
+|                                                   |  122883 Michelle Guya                                                                      |
+|                                                   |  134834 Kasio Emmanuel                                                                     |
+|                                                   |  136301 Ian Nyameta                                                                        |
+| **BBIT 4.2 Group**                                |  Group B                                                                                   |
+| **Course Code**                                   |  BBT4206                                                                                   |
+| **Course Name**                                   |  Business Intelligence II                                                                  |
+| **Program**                                       |  Bachelor of Business Information Technology                                               |
+| **Semester Duration**                             |  21^st^ August 2023 to 28^th^ November 2023                                                |
+
+
+# Setup Chunk
+
+**Note:** the following KnitR options have been set as the global defaults: <BR> `knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy = TRUE)`.
+
+More KnitR options are documented here <https://bookdown.org/yihui/rmarkdown-cookbook/chunk-options.html> and here <https://yihui.org/knitr/options/>.
+
+```{r setup, include=FALSE}
+library(formatR)
+knitr::opts_chunk$set(
+  warning = FALSE,
+  collapse = FALSE
+)
+```
+
+# Resampling Methods
+This code first installs 'mlbench' package if it is not installed,it is the 'mlbench' package that enables the 'PimaIndiansDiabetes' dataset to be loaded, the code then checks the dimensions of the dataset, displays the data types of its variables, and provides a detailed structure summary of the dataset.
+
+```{r Code Chunk}
+
+if (!is.element("mlbench", installed.packages()[, 1])) {
+  install.packages("mlbench", dependencies = TRUE)
+}
+require("mlbench")
+
+data("PimaIndiansDiabetes")
+
+dim(PimaIndiansDiabetes)
+
+sapply(PimaIndiansDiabetes, class)
+
+str(PimaIndiansDiabetes)
+```
+
+
+This code is splitting the 'PimaIndiansDiabetes' dataset into training and testing subsets, with 75% of the data used for training and 25% for testing, in order to prepare the data for machine learning model training and evaluation.
+
+```{r Code Chunk}
+train_index <- createDataPartition(PimaIndiansDiabetes$diabetes,
+                                   p = 0.75,
+                                   list = FALSE)
+PimaIndiansDiabetes_train <- PimaIndiansDiabetes[train_index, ]
+PimaIndiansDiabetes_test <- PimaIndiansDiabetes[-train_index, ]
+```
+
+
+In this code, two Naive Bayes models for the 'diabetes' classification task are built and evaluated. The first model (`PimaIndiansDiabetes_model_nb_e1071`) is created using the `e1071` package, and the second model (`PimaIndiansDiabetes_model_nb_caret`) is built using the `caret` package with the Naive Bayes method. Both models are trained on a subset of the 'PimaIndiansDiabetes' dataset that includes specific predictor variables. After training, predictions are made for both models on a test dataset, and various performance metrics like confusion matrices and plots are generated to evaluate their classification performance. Additionally, the code prints out the predictions of the 'PimaIndiansDiabetes_model_nb_e1071' model and the confusion matrix and plot for this model, as well as the confusion matrix and plot for the 'PimaIndiansDiabetes_model_nb_caret' model. This code is used to assess and compare the performance of two Naive Bayes models for the 'diabetes' classification task.
+```{r Code Chunk}
+PimaIndiansDiabetes_model_nb_e1071 <- # nolint
+  e1071::naiveBayes(diabetes ~ pregnant + glucose + pressure + triceps + insulin + mass +
+                      pedigree + age,
+                    data = PimaIndiansDiabetes_train)
+
+PimaIndiansDiabetes_model_nb_caret <- # nolint
+  caret::train(diabetes ~ ., data =
+                 PimaIndiansDiabetes_train[, c("pregnant", "glucose", "pressure",
+                                             "triceps", "insulin", "mass",
+                                             "pedigree",
+                                             "age",
+                                             "diabetes")],
+               method = "naive_bayes")
+
+predictions_nb_e1071 <-
+  predict(PimaIndiansDiabetes_model_nb_e1071,
+          PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                       "triceps", "insulin", "mass",
+                                       "pedigree",
+                                       "age")])
+
+predictions_nb_caret <-
+  predict(PimaIndiansDiabetes_model_nb_caret,
+          PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                     "triceps", "insulin", "mass",
+                                     "pedigree",
+                                     "age")])
+
+print(predictions_nb_e1071)
+caret::confusionMatrix(predictions_nb_e1071,
+                       PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                                  "triceps", "insulin", "mass",
+                                                  "pedigree",
+                                                  "age", "diabetes")]$diabetes)
+
+plot(table(predictions_nb_e1071,
+           PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                        "triceps", "insulin", "mass",
+                                        "pedigree",
+                                        "age", "diabetes")]$diabetes))
+
+print(PimaIndiansDiabetes_model_nb_caret)
+caret::confusionMatrix(predictions_nb_e1071,
+                       PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                                    "triceps", "insulin", "mass",
+                                                    "pedigree",
+                                                    "age", "diabetes")]$diabetes)
+plot(table(predictions_nb_caret,
+           PimaIndiansDiabetes_test[, c("pregnant", "glucose", "pressure",
+                                        "triceps", "insulin", "mass",
+                                        "pedigree",
+                                        "age", "diabetes")]$diabetes))
+```
+
+
+
+In this code, two Naive Bayes models are built for the 'diabetes' classification task. The first model (`PimaIndiansDiabetes_model_nb_klaR`) is created using the `klaR` package, and the second model (`PimaIndiansDiabetes_model_nb_e1071`) is built using the `e1071` package with the Naive Bayes method. Both models are trained on the 'PimaIndiansDiabetes_train' dataset, where the formula `diabetes ~ .` indicates that the 'diabetes' variable is to be predicted using all other variables in the dataset. After training, predictions are made for the 'PimaIndiansDiabetes_model_nb_e1071' model on the 'PimaIndiansDiabetes_test' dataset. The code then prints out the model summary, computes the confusion matrix using the `caret` package, and generates a plot of the confusion matrix to evaluate the classification performance of the 'PimaIndiansDiabetes_model_nb_e1071'. Finally, the code calculates the correlation matrix for the first eight variables of the original 'PimaIndiansDiabetes' dataset and displays it using the `View` function.
+```{r Code Chunk}
+PimaIndiansDiabetes_model_nb_klaR <- # nolint
+  klaR::NaiveBayes(`diabetes` ~ .,
+                   data = PimaIndiansDiabetes_train)
+
+PimaIndiansDiabetes_model_nb_e1071 <- # nolint
+  e1071::naiveBayes(`diabetes` ~ .,
+                    data = PimaIndiansDiabetes_train)
+
+predictions_nb_e1071 <-
+  predict(PimaIndiansDiabetes_model_nb_e1071,
+          PimaIndiansDiabetes_test[, 1:9])
+
+print(PimaIndiansDiabetes_model_nb_e1071)
+caret::confusionMatrix(predictions_nb_e1071,
+                       PimaIndiansDiabetes_test$`diabetes`)
+
+plot(table(predictions_nb_e1071,
+           PimaIndiansDiabetes_test$`diabetes`))
+
+
+PimaIndiansDiabetes_cor <- cor(PimaIndiansDiabetes[, 1:8])
+View(PimaIndiansDiabetes_cor)
+```
+
+
+
+In this code, a linear regression model (`PimaIndiansDiabetes_model_lm`) linear regression models cannot be used to predict a classification like the 'diabetes' variable, therefore it is trained using the caret package to predict the 'insulin' variable based on other predictor variables: 'pregnant,' 'glucose,' 'pressure,' 'triceps,' 'mass,' 'pedigree,' and 'age.' The model is trained on the 'PimaIndiansDiabetes_train' dataset with bootstrapped resampling for 500 iterations. The RMSE (Root Mean Square Error) is used as the evaluation metric.
+
+After training, predictions are made on the 'PimaIndiansDiabetes_test' dataset, and the predictions are printed. This allows you to assess the model's performance on a test dataset.
+
+Then, a new data point is created in the 'new_data' dataframe, and the model is used to make predictions on this new data point. The 'diabetes' variable is converted to a factor variable, and predictions are generated for this new data point, which is printed as 'predictions_lm_new_data'.
+
+```{r Code Chunk}
+train_control <- trainControl(method = "boot", number = 500)
+
+PimaIndiansDiabetes_model_lm <- caret::train(`insulin` ~
+                                               `pregnant` + `glucose` +
+                                               `pressure` + `triceps` +
+                                               `mass` + `pedigree` +
+                                               `age`,
+                                             data = PimaIndiansDiabetes_train,
+                                             trControl = train_control,
+                                             na.action = na.omit, method = "lm", metric = "RMSE")
+
+predictions_lm <- predict(PimaIndiansDiabetes_model_lm, newdata = PimaIndiansDiabetes_test)
+
+
+print(PimaIndiansDiabetes_model_lm)
+print(predictions_lm)
+
+new_data <-
+  data.frame(`diabetes` = c(1), `insulin` = c(0),
+               `pregnant` = c(6), `glucose` = c(88),
+               `pressure` = c(72), `triceps` = c(30),
+               `mass` = c(35.3), `pedigree` = c(0.349),
+               `age` = c(40))
+new_data$`diabetes` <-
+  as.factor(new_data$`diabetes`) # nolint
+
+predictions_lm_new_data <-
+  predict(PimaIndiansDiabetes_model_lm, new_data)
+
+print(predictions_lm_new_data)
+```
+
+
+
+In this code chunk, several machine learning models are trained and evaluated for the classification of 'diabetes' using different methods and cross-validation techniques. Each model is created and evaluated as follows:
+
+1. Linear Regression (lm): A linear regression model is trained using 10-fold cross-validation, and predictions are made on the test data. The RMSE metric is used to evaluate the model's performance.
+
+2. Linear Discriminant Analysis (LDA): An LDA classification model is trained using 5-fold cross-validation with accuracy as the evaluation metric, and predictions are generated for the test data. A confusion matrix is also computed.
+
+3. Naive Bayes (e1071 package): A Naive Bayes model is trained using the entire dataset (leave-one-out cross-validation), and predictions are made on the test data. The accuracy metric is used to evaluate the model.
+
+4. Support Vector Machine (SVM): A linear SVM model is trained using 5-fold repeated cross-validation with accuracy as the evaluation metric, and predictions are generated for the test data. A confusion matrix is also computed.
+
+Each model's summary and predictions are printed, and the accuracy or RMSE is used to assess their classification performance. The code demonstrates various cross-validation techniques and model evaluation methods to compare different approaches for the 'diabetes' classification task.
+```{r Code Chunk}
+train_control <- trainControl(method = "cv", number = 10)
+
+PimaIndiansDiabetes_model_lm <- caret::train(`insulin` ~ `glucose` + `pressure` + `triceps` + `mass` + `pedigree` + `age`,
+                                             data = PimaIndiansDiabetes_train,
+                                             trControl = train_control, na.action = na.omit,
+                                             method = "lm", metric = "RMSE")
+
+predictions_lm <- predict(PimaIndiansDiabetes_model_lm, PimaIndiansDiabetes_test[, 2:9])
+
+print(PimaIndiansDiabetes_model_lm)
+print(predictions_lm)
+
+train_control <- trainControl(method = "cv", number = 5)
+
+PimaIndiansDiabetes_model_lda <-
+  caret::train(`diabetes` ~ ., data = PimaIndiansDiabetes_train,
+               trControl = train_control, na.action = na.omit, method = "lda2",
+               metric = "Accuracy")
+
+predictions_lda <- predict(PimaIndiansDiabetes_model_lda,
+                           PimaIndiansDiabetes_test[, 1:9])
+
+print(PimaIndiansDiabetes_model_lda)
+caret::confusionMatrix(predictions_lda, PimaIndiansDiabetes_test$diabetes)
+
+PimaIndiansDiabetes_model_nb <-
+  e1071::naiveBayes(`diabetes` ~ ., data = PimaIndiansDiabetes_train)
+
+predictions_nb_e1071 <-
+  predict(PimaIndiansDiabetes_model_nb, PimaIndiansDiabetes_test[, 1:9])
+
+print(PimaIndiansDiabetes_model_nb)
+caret::confusionMatrix(predictions_nb_e1071, PimaIndiansDiabetes_test$diabetes)
+
+
+train_control <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
+
+PimaIndiansDiabetes_model_svm <-
+  caret::train(`diabetes` ~ ., data = PimaIndiansDiabetes_train,
+               trControl = train_control, na.action = na.omit,
+               method = "svmLinearWeights2", metric = "Accuracy")
+
+predictions_svm <- predict(PimaIndiansDiabetes_model_svm, PimaIndiansDiabetes_test[, 1:9])
+
+print(PimaIndiansDiabetes_model_svm)
+caret::confusionMatrix(predictions_svm, PimaIndiansDiabetes_test$diabetes)
+
+
+
+train_control <- trainControl(method = "LOOCV")
+
+PimaIndiansDiabetes_model_nb_loocv <-
+  caret::train(`diabetes` ~ ., data = PimaIndiansDiabetes_train,
+               trControl = train_control, na.action = na.omit,
+               method = "naive_bayes", metric = "Accuracy")
+
+predictions_nb_loocv <-
+  predict(PimaIndiansDiabetes_model_nb_loocv, PimaIndiansDiabetes_test[, 1:9])
+
+print(PimaIndiansDiabetes_model_nb_loocv)
+caret::confusionMatrix(predictions_nb_loocv, PimaIndiansDiabetes_test$diabetes)
+
+```
